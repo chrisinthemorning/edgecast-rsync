@@ -7,16 +7,25 @@ rm -rf /tmp/changedfiles
 cd /opt/www/htdocs/
 
 #find recently modified files
-find  . -cmin -20 > /tmp/changedfiles
+find  . -cmin -120 > /tmp/changedfiles
 
-echo "Starting:" >>  /tmp/ec.log
-
+echo "##Starting:" >>  /tmp/ec.log
 date >>  /tmp/ec.log
-echo "Files changed:" `wc -l /tmp/changedfiles >> /tmp/ec.log`
+echo "##Recent Files changed or Added:" `wc -l /tmp/changedfiles >> /tmp/ec.log`
 
-#run rsync for these changed files, only changing existing files and logging output
-/usr/bin/rsync --itemize-changes -az --existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/ > /tmp/rsync.ec.out
+#Run rsync for NEW files
+/usr/bin/rsync -azv --ignore-existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/ > /tmp/rsync.ec.out
+
+echo "##Copying New Files" >> /tmp/ec.log
 cat /tmp/rsync.ec.out >> /tmp/ec.log
+
+#run rsync for OLD changed files and logging output
+/usr/bin/rsync --itemize-changes -az --existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/ > /tmp/rsync.ec.out
+
+echo "##Changing modified Files" >> /tmp/ec.log
+cat /tmp/rsync.ec.out >> /tmp/ec.log
+echo "##Purging Files" >> /tmp/ec.log
+
 #loop through output so we can purge changed files
 for filetopurge in `grep "^<f" /tmp/rsync.ec.out | cut -d " " -f2`; do
         if [ -f $filetopurge ]
@@ -38,8 +47,5 @@ for filetopurge in `grep "^<f" /tmp/rsync.ec.out | cut -d " " -f2`; do
         fi
 done
 
-#now run rsync for remainder of files
-/usr/bin/rsync -azv --ignore-existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/
-
-echo "Finished: " >>  /tmp/ec.log
+echo "##Finished: " >>  /tmp/ec.log
 date >>  /tmp/ec.log
