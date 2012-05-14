@@ -20,7 +20,7 @@ echo "##Copying New Files" >> /tmp/ec.log
 cat /tmp/rsync.ec.out >> /tmp/ec.log
 
 #run rsync for OLD changed files and logging output
-/usr/bin/rsync --itemize-changes -az --existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/ > /tmp/rsync.ec.out
+/usr/bin/rsync --itemize-changes -acz --existing  -e "ssh -i /home/rsync/.ssh/rsync_edgecast_id_rsa  -p8022 -oUserKnownHostsFile=/dev/null -oStrictHostKeyChecking=no" --files-from=/tmp/changedfiles /opt/www/htdocs/  rsyncuser@yourdomain.com@rsync.ams.edgecastcdn.net:/content/htdocs/ > /tmp/rsync.ec.out
 
 echo "##Changing modified Files" >> /tmp/ec.log
 cat /tmp/rsync.ec.out >> /tmp/ec.log
