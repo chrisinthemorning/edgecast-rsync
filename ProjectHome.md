@@ -1,0 +1,1 @@
+Bash script for managing content on edgecast
